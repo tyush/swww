@@ -337,6 +337,7 @@ pub enum Request {
     Kill,
     Query,
     Img(ImageRequest),
+    AddToCache(Box<Img>, Box<String>),
     CachedImage(CachedImageRequest),
 }
 

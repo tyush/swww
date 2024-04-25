@@ -231,4 +231,14 @@ impl Animator {
             Err(e) => Answer::Err(e.to_string()),
         }
     }
+
+    pub(crate) fn cache_img(&mut self, name: &String, bits: Box<Img>) -> Answer {
+        if let Some(_) = self.cache.insert(name.to_owned(), *bits) {
+            // TODO: find some way to signal to the requester
+            //       that an existing image in cache was replaced
+            Answer::Ok
+        } else {
+            Answer::Ok
+        }
+    }
 }

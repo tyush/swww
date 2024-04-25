@@ -444,6 +444,7 @@ impl Daemon {
                 }
                 self.animator.transition(transition, imgs, used_wallpapers)
             }
+            Request::AddToCache(bits, name) => self.animator.cache_img(&name, bits),
             Request::CachedImage(CachedImageRequest {
                 transition,
                 imgs,
