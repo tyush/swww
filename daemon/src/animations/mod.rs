@@ -1,7 +1,8 @@
 use log::error;
 
 use std::{
-    sync::Arc,
+    collections::HashMap,
+    sync::{Arc, Mutex, RwLock},
     thread::{self, Scope},
     time::Duration,
 };
@@ -24,12 +25,14 @@ const STACK_SIZE: usize = 1 << 17; //128KiB
 
 pub(super) struct Animator {
     anim_barrier: ArcAnimBarrier,
+    cache: HashMap<String, Img>,
 }
 
 impl Animator {
     pub(super) fn new() -> Self {
         Self {
             anim_barrier: ArcAnimBarrier::new(),
+            cache: HashMap::new(),
         }
     }
 
@@ -83,6 +86,43 @@ impl Animator {
             .spawn(move || {
                 thread::scope(|s| {
                     for (Img { img, path }, wallpapers) in imgs.iter().zip(wallpapers) {
+                        Self::spawn_transition_thread(s, &transition, img, path, wallpapers);
+                    }
+                });
+            }) {
+            Ok(_) => Answer::Ok,
+            Err(e) => Answer::Err(e.to_string()),
+        }
+    }
+
+    pub(super) fn cached_transition(
+        &mut self,
+        transition: ipc::Transition,
+        names: Box<[String]>,
+        wallpapers: Vec<Vec<Arc<Wallpaper>>>,
+    ) -> Answer {
+        let cache_results = names
+            .iter()
+            .map(|name| {
+                self.cache
+                    .get(name)
+                    // TODO: don't clone, just ref
+                    .map(|img| img.clone())
+                    .ok_or_else(|| Answer::Err(format!("{name} not in cache!")))
+            })
+            .collect::<Result<Vec<Img>, Answer>>();
+
+        let imgs = match cache_results {
+            Ok(hits) => hits,
+            Err(answer) => return answer,
+        };
+
+        match thread::Builder::new()
+            .stack_size(1 << 15)
+            .name("cached transition spawner".to_string())
+            .spawn(move || {
+                thread::scope(|s| {
+                    for (Img { ref img, ref path }, wallpapers) in imgs.iter().zip(wallpapers) {
                         Self::spawn_transition_thread(s, &transition, img, path, wallpapers);
                     }
                 });

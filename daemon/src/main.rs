@@ -51,7 +51,7 @@ use wayland_client::{
 
 use utils::ipc::{
     connect_to_socket, get_socket_path, read_socket, AnimationRequest, Answer, BgInfo,
-    ImageRequest, PixelFormat, Request, Scale,
+    CachedImageRequest, ImageRequest, PixelFormat, Request, Scale,
 };
 
 use animations::Animator;
@@ -443,6 +443,22 @@ impl Daemon {
                     used_wallpapers.push(wallpapers);
                 }
                 self.animator.transition(transition, imgs, used_wallpapers)
+            }
+            Request::CachedImage(CachedImageRequest {
+                transition,
+                imgs,
+                outputs,
+            }) => {
+                let mut used_wallpapers = Vec::new();
+                for names in outputs.iter() {
+                    let mut wallpapers = self.find_wallpapers_by_names(names);
+                    for wallpaper in wallpapers.iter_mut() {
+                        wallpaper.stop_animations();
+                    }
+                    used_wallpapers.push(wallpapers);
+                }
+                self.animator
+                    .cached_transition(transition, imgs, used_wallpapers)
             }
         };
         if let Err(e) = answer.send(&stream) {
