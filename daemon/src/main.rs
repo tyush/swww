@@ -399,6 +399,8 @@ impl Daemon {
                 self.animator.animate(animations, wallpapers)
             }
             Request::Clear(clear) => {
+                self.animator.clear_cache();
+
                 let wallpapers = self.find_wallpapers_by_names(&clear.outputs);
                 let color = clear.color;
                 match std::thread::Builder::new()

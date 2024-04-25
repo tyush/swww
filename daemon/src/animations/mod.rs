@@ -241,4 +241,8 @@ impl Animator {
             Answer::Ok
         }
     }
+
+    pub(crate) fn clear_cache(&mut self) {
+        self.cache = HashMap::new();
+    }
 }
