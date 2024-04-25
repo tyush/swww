@@ -233,7 +233,7 @@ pub struct Clear {
     pub outputs: Box<[String]>,
 }
 
-#[derive(Decode, Encode)]
+#[derive(Decode, Encode, Clone)]
 pub struct Img {
     pub path: String,
     pub img: Box<[u8]>,
