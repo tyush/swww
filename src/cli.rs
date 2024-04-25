@@ -388,6 +388,9 @@ pub struct Img {
     ///currently only used for 'wave' transition to control the width and height of each wave
     #[arg(long, env = "SWWW_TRANSITION_WAVE", default_value = "20,20", value_parser = parse_wave)]
     pub transition_wave: (f32, f32),
+
+    #[arg(long, env = "SWWW_ONLY_CACHE", default_value = "false")]
+    pub only_cache: bool,
 }
 
 fn parse_wave(raw: &str) -> Result<(f32, f32), String> {

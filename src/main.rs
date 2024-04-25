@@ -146,7 +146,17 @@ fn make_request(args: &Swww) -> Result<Option<Request>, String> {
                     let animations = make_animation_request(img, &imgbuf, &dims, format, &outputs);
 
                     let socket = connect_to_socket(&get_socket_path(), 5, 100)?;
-                    Request::Img(img_request).send(&socket)?;
+                    if img.only_cache {
+                        for i in 0..img_request.imgs.len() {
+                            Request::AddToCache(
+                                Box::new(img_request.imgs[i].clone()),
+                                Box::new(img_request.imgs[i].path.to_owned()),
+                            )
+                            .send(&socket)?;
+                        }
+                    } else {
+                        Request::Img(img_request).send(&socket)?;
+                    }
                     let bytes = read_socket(&socket)?;
                     drop(socket);
                     if let Answer::Err(e) = Answer::receive(&bytes) {
@@ -383,6 +393,7 @@ fn restore_from_cache(requested_outputs: &[String]) -> Result<(), String> {
             invert_y: false,
             transition_bezier: (0.0, 0.0, 0.0, 0.0),
             transition_wave: (0.0, 0.0),
+            only_cache: false,
         })) {
             eprintln!("WARNING: failed to load cache for output {output}: {e}");
         }
