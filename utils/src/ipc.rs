@@ -323,6 +323,13 @@ impl ImageRequestBuilder {
 }
 
 #[derive(Decode, Encode)]
+pub struct CachedImageRequest {
+    pub transition: Transition,
+    pub imgs: Box<[String]>,
+    pub outputs: Box<[Box<[String]>]>,
+}
+
+#[derive(Decode, Encode)]
 pub enum Request {
     Animation(AnimationRequest),
     Clear(Clear),
@@ -330,6 +337,7 @@ pub enum Request {
     Kill,
     Query,
     Img(ImageRequest),
+    CachedImage(CachedImageRequest),
 }
 
 impl Request {
