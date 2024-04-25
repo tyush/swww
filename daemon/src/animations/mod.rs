@@ -2,7 +2,7 @@ use log::error;
 
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, RwLock},
+    sync::Arc,
     thread::{self, Scope},
     time::Duration,
 };
